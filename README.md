@@ -14,7 +14,7 @@ Use www.sqlteaching.com or sqlbolt.com as resources for the missing keywords you
 
 ### Use at least one join for all of the following
 
-__Examples__ 
+__Examples__
 ```
 Select [Column names] from [Table] [abbv] join [Table2] [abbv2] on abbv.prop=abbv2.prop where [Conditions]
 
@@ -23,17 +23,57 @@ Select a.Name, b.Name from someTable a join anotherTable b on a.someid=b.someid 
 ```
 
 * Get all invoices where the unit price on the invoice line is greater than $0.99
+
+SELECT * FROM InvoiceLine
+JOIN Invoice ON InvoiceLine.InvoiceId = Invoice.InvoiceId
+WHERE UnitPrice > 0.99
+
 * Get all invoices and show me their invoice date, customer first and last names, and total
+SELECT Invoice.InvoiceDate, Customer.FirstName, Customer.LastName, Invoice.Total
+FROM Invoice
+JOIN Customer ON Invoice.CustomerId = Customer.CustomerId
+
 
 * Get all customers and show me their first name, last name, and support rep first name and last name (support reps are on the Employees table)
+SELECT Customer.FirstName as CustomerFirst, Customer.LastName as CustomerLast,
+Employee.FirstName as EmployeeFirst, Employee.LastName as EmployeeLast
+FROM Customer
+JOIN Employee ON Customer.SupportRepId = Employee.EmployeeId
+
 
 * Get all Albums and show me the album title and the artist name
 
+SELECT Album.Title, Artist.Name FROM Album
+JOIN Artist ON Artist.ArtistId = Album.ArtistId
+
+
 * Get all Playlist Tracks where the playlist name is Music
+
+SELECT PlaylistTrack.TrackId as TrackID, Playlist.name as PlaylistName FROM PlaylistTrack
+JOIN Playlist ON Playlist.PlaylistId = PlaylistTrack.PlaylistId
+WHERE PlaylistName = 'Music'
+
 * Get all Tracknames for playlistId 5
+
+SELECT Track.Name, PlaylistTrack.PlaylistId FROM Track
+JOIN PlaylistTrack ON PlaylistTrack.TrackId = Track.TrackId
+WHERE PlaylistTrack.PlaylistId = 5
+
+
+
 * Now we want all tracknames and the playlist name that they're on (You'll have to use 2 joins)
+SELECT Track.Name as TrackName, Playlist.Name as PlaylistName FROM Track
+JOIN PlaylistTrack ON PlaylistTrack.TrackId = Track.TrackId
+JOIN Playlist ON Playlist.PlaylistId = PlaylistTrack.PlaylistId
+
 
 * Get all Tracks that are alternative and show me the track name and the album name (2 joins)
+
+SELECT Track.Name as TrackName, Album.Title as AlbumTitle
+FROM Track
+JOIN Album ON Album.AlbumId = Track.AlbumId
+JOIN Genre ON Track.GenreId = Genre.GenreId
+
 
 #### Black Diamond :
 
@@ -44,7 +84,7 @@ Select a.Name, b.Name from someTable a join anotherTable b on a.someid=b.someid 
 
 ### Use no joins for the following queries.  Use only nested queries.
 
-__Examples__ 
+__Examples__
 ```
 Select [Column names] from [Table] where columnId in (select columnId from [Table2] where [Condition])
 
@@ -52,11 +92,48 @@ Select Name, email from athlete where athleteId in (select personId from pieEate
 ```
 
 * Get all invoices where the unit price on the invoice line is greater than $0.99
+
+SELECT *
+FROM Invoice
+WHERE InvoiceId IN
+(SELECT InvoiceId FROM InvoiceLine WHERE UnitPrice > 0.99)
+
 * Get all Playlist Tracks where the playlist name is Music
+
+SELECT *
+FROM PlaylistTrack
+WHERE PlaylistId IN
+(SELECT PlaylistId FROM Playlist WHERE Name = 'Music')
+
 * Get all Tracknames for playlistId 5
+
+SELECT Name
+FROM Track
+WHERE TrackId IN
+(SELECT TrackId FROM PlaylistTrack WHERE PlaylistId = 5)
+
 * Get all tracks where the genre is comedy
+
+SELECT *
+FROM Track
+WHERE GenreId IN
+(SELECT GenreId FROM Genre WHERE Name = 'Comedy')
+
+
 * Get all tracks where the album is Fireball
+
+SELECT *
+FROM Track
+WHERE AlbumId IN
+(SELECT AlbumId FROM Album WHERE Title = 'Fireball')
+
 * Get all tracks for the artist queen Queen (2 nested subqueries)
+
+SELECT Name FROM Track
+WHERE AlbumId IN
+(SELECT AlbumId FROM Album WHERE ArtistId IN
+ (SELECT ArtistId from Artist WHERE Name = "Queen"))
+
 
 
 ## Practice updating Rows
@@ -69,11 +146,27 @@ Update Athletes set sport='Picklball' where sport='pockleball'
 ```
 
 * Find all customers with fax numbers and set those numbers to null
+
+UPDATE Customer SET Fax=Null WHERE Fax IS NOT Null
+
 * Find all customers with no company (null) and set their company to self
+
+UPDATE Customer SET Company='Self' WHERE Company IS Null
+
 * Find the customer `Julia Barnett` and change her last name to `Thompson`
+
+--note, I ran a query to check that she was the only Barnett in the DB
+
+UPDATE Customer SET LastName='Thompson' WHERE LastName='Barnett'
+
 * Find the customer with this email `luisrojas@yahoo.cl` and change his support rep to rep 4
 
+UPDATE Customer SET SupportRepId=4 WHERE Email='luisrojas@yahoo.cl'
+
 * Find all tracks that are of the genre `Metal` and that have no composer and set the composer to be 'The darkness around us'
+
+UPDATE Track SET Composer='The darkness around us' WHERE Composer is Null
+
 
 
 Once you're done with all of those refresh your page to blow away your changes to the database!
@@ -81,22 +174,52 @@ Once you're done with all of those refresh your page to blow away your changes t
 ## Group by
 
 * Find a count of how many tracks there are per genre
+
+SELECT count(*), GenreId FROM Track
+GROUP BY GenreId*
+
 * Find a count of all Tracks where the Genre is pop
+SELECT count(*) FROM Track
+WHERE GenreId = 9*
+
 * Find a list of all artist and how many albums they have
+
+SELECT Artist.Name, count(Album.Title)
+FROM Artist
+JOIN Album ON Album.ArtistId = Artist.ArtistId
+GROUP BY Artist.Name
 
 ## Use Distinct
 
 * From the tracks table find a unique list of all composers
+SELECT DISTINCT Composer FROM Track
+
 * From the Invoice table find a unique list of all Billing postal codes
-* From the Customer table find a unique list of all companies 
+
+SELECT DISTINCT BillingPostalCode FROM Invoice
+
+* From the Customer table find a unique list of all companies
+
+SELECT DISTINCT Company FROM Customer
+
+
 
 ## Delete Rows
 
 Always do a select before a delete to make sure you get back exactly what you want and only what you want to delete!
 
 * Remove all pop tracks from the tracks table
+DELETE FROM Track
+WHERE GenreId = 9
+FOREIGN KEY constraint failed
+
 * Remove all tracks by `Santana`
+
+DELETE FROM Track
+WHERE Composer = 'Santana'
+
 * Remove all of the rest of the tracks, yes all of them.
+DELETE FROM Track
 
 Now refresh your browser to reset all your data
 
@@ -115,7 +238,7 @@ Add some data to fill up each table (write down your schema since you won't see 
 
 Add 2 users, multiple products and multiple orders.
 
-Run some queries against your data: 
+Run some queries against your data:
 
 * Get all products for the first order
 * Get all orders
