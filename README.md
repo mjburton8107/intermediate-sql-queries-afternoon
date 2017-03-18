@@ -234,26 +234,77 @@ Products need a name and a price
 Orders need a ref to product.
 All 3 need primary keys.
 
+CREATE TABLE Order (
+	OrderId INTEGER PRIMARY KEY AUTOINCREMENT,
+  	OrderQuantity INTEGER,
+  	ProductId INTEGER references Products(ProductId)
+);
+
+similar format for Products and Users without foreign key
+
 Add some data to fill up each table (write down your schema since you won't see it on the side).  You'll need to insert products before you can link them.
 
 Add 2 users, multiple products and multiple orders.
 
+INSERT INTO Users (UserName, UserEmail)
+VALUES ('Michael Burton', 'mike@gmail.com');
+VALUES ('Heidi Hawkins', 'heidi@gmail.com')
+
+similar format for other tables
+
+
 Run some queries against your data:
 
 * Get all products for the first order
+
+SELECT Products.ProductName, Orders.OrderId FROM Products
+JOIN Orders ON Products.ProductId = Orders.ProductId
+
 * Get all orders
+
+SELECT Orders.*, Products.ProductName FROM Orders
+JOIN Products ON Products.ProductId = Orders.ProductId*
+
 * Get the total cost of an order (sum the price of all products on an order)
+
+SELECT (Orders.OrderQuantity * Products.ProductPrice) as OrderTotal FROM Orders
+JOIN Products ON Products.ProductId = Orders.ProductId
 
 ## Add foreign key to existing table
 
 Orders have products, but someone needs to place the order.
 
 Add a ref from Orders to Users.  
+
+ALTER TABLE Orders
+ADD FOREIGN KEY (PersonID) REFERENCES Persons(PersonID);
+
 Add some users.
+
+INSERT INTO Users (UserName, UserEmail)
+VALUES ('Kris Burton', 'kris@gmail.com');
+
+
 Update the Orders table to link the a user to each order.
+
+update orders set UserId=2 where OrderId=2;
+update orders set UserId=3 where OrderId=3;
+update orders set UserId=4 where OrderId=4;
+update orders set UserId=5 where OrderId=5;
+update orders set UserId=6 where OrderId=6;
+update orders set UserId=7 where OrderId=7;
 
 Run some queries against your data:
 
 * Get all orders for a user
+
+SELECT Users.UserName, Orders.OrderId FROM Users
+JOIN Orders ON Orders.UserId = Users.UserId
+GROUP BY Users.UserName
+
 * Get how many orders each user has
+
+SELECT Users.UserName, count(Orders.OrderId) as totalOrders FROM Users
+JOIN Orders ON Orders.UserId = Users.UserId
+GROUP BY Users.UserName
 * __Black Diamond:__ Get the total spend on all orders for each user
